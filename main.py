@@ -35,6 +35,10 @@ async def on_message(client: AutomationClient, event: MessageEv):
 
     if message.is_from_me:
         return
+    
+    if message.has_media:
+        print("punya media dia")
+        return
 
     text = message.text.lower().strip()
 
