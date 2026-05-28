@@ -1,0 +1,15 @@
+[project]
+name = "automation-core"
+version = "0.1.0"
+description = "Internal automation SDK for GOWA Redis Stream workers"
+requires-python = ">=3.11"
+dependencies = [
+    "redis",
+    "httpx",
+    "pydantic-settings",
+    "python-dotenv",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["automation_core*"]
