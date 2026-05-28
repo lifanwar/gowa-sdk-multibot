@@ -1,15 +1,5 @@
-from dotenv import load_dotenv
-from pathlib import Path
-
 from automation_core.client import AutomationClient
 from automation_core.events import MessageEv, StartedEv
-
-
-load_dotenv()
-
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env", override=True)
-
 
 client = AutomationClient()
 
