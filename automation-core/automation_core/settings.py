@@ -14,17 +14,25 @@ class Settings(BaseSettings):
 
     bot_name: str = "automation-bot"
 
+    # Device yang akan ditangani worker ini.
+    # Worker hanya subscribe ke channel milik device ini.
     device_id: str
-    stream_name: str | None = None
-    stream_prefix: str = "wa:incoming"
-
-    consumer_group: str | None = None
-    consumer_name: str | None = None
 
     redis_url: str = "redis://localhost:6379/0"
 
-    stream_block_ms: int = 5000
-    stream_count: int = 10
+    # Pub/Sub baru. Format default channel:
+    # wa:incoming:{device_id}
+    pubsub_channel_name: str | None = None
+    pubsub_channel_prefix: str = "wa:incoming"
+
+    # Backward-compatible migration fields.
+    # Kalau .env lama masih memakai STREAM_NAME/STREAM_PREFIX,
+    # worker tetap bisa jalan, tetapi sebaiknya pindah ke PUBSUB_*.
+    stream_name: str | None = None
+    stream_prefix: str | None = None
+
+    pubsub_poll_timeout_seconds: float = 1.0
+    redis_reconnect_sleep_seconds: float = 2.0
 
     gowa_base_url: str = "http://localhost:3000"
     gowa_device_id: str | None = None
@@ -33,30 +41,25 @@ class Settings(BaseSettings):
     gowa_basic_auth_username: str | None = None
     gowa_basic_auth_password: str | None = None
 
-    ack_on_handler_success: bool = True
-
     @property
-    def resolved_stream_name(self) -> str:
+    def resolved_pubsub_channel(self) -> str:
+        if self.pubsub_channel_name:
+            return self.pubsub_channel_name
+
         if self.stream_name:
             return self.stream_name
 
-        return f"{self.stream_prefix}:{self.device_id}"
+        prefix = self.pubsub_channel_prefix
 
-    @property
-    def resolved_consumer_group(self) -> str:
-        if self.consumer_group:
-            return self.consumer_group
+        if self.stream_prefix:
+            prefix = self.stream_prefix
 
-        return f"{self.bot_name}-group"
+        return f"{prefix}:{self.device_id}"
 
     @property
     def resolved_consumer_name(self) -> str:
-        if self.consumer_name:
-            return self.consumer_name
-
         hostname = socket.gethostname()
         pid = os.getpid()
-
         return f"{self.bot_name}-{hostname}-{pid}"
 
     @property
