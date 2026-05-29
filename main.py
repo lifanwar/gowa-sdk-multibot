@@ -41,20 +41,6 @@ async def on_message(client: AutomationClient, event: MessageEv):
         )
         return
 
-    if "harga" in text or "price" in text or "pricelist" in text:
-        await client.reply_message(
-            "Berikut daftar harga produk kami. Silakan sebutkan produk yang ingin dicek.",
-            message,
-        )
-        return
-
-    if "katalog" in text:
-        await client.reply_message(
-            "Berikut katalog produk kami: https://example.com/katalog",
-            message,
-        )
-        return
-
     if "komplain" in text:
         await client.reply_message(
             "Baik, laporan Anda kami teruskan ke admin sales.",
@@ -62,7 +48,7 @@ async def on_message(client: AutomationClient, event: MessageEv):
         )
 
         await client.send_message(
-            to="628xxxxxxxxxx",
+            to="201505218569",
             text=f"Komplain baru dari {message.sender}: {message.text}",
         )
         return
