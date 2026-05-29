@@ -64,7 +64,7 @@ class Settings(BaseSettings):
 
     @property
     def resolved_gowa_device_id(self) -> str:
-        return self.gowa_device_id or self.device_id
+        return self.gowa_device_id
 
 
 @lru_cache
