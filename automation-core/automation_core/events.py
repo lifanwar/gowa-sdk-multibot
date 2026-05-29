@@ -10,12 +10,6 @@ class StartedEv:
     device_id: str
     channel_name: str
 
-    @property
-    def stream_name(self) -> str:
-        # Compatibility alias untuk kode lama yang masih membaca event.stream_name.
-        return self.channel_name
-
-
 @dataclass
 class MessageEv:
     device_id: str
