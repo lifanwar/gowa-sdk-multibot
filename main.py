@@ -1,84 +1,52 @@
-from dotenv import load_dotenv
-from pathlib import Path
+from automation_core import AutomationClient, MessageEv, StartedEv
 
-from automation_core.client import AutomationClient
-from automation_core.events import MessageEv, StartedEv
+bot = AutomationClient()
 
 
-load_dotenv()
-
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env", override=True)
-
-
-client = AutomationClient()
-
-
-@client.event(StartedEv)
-def on_started(client: AutomationClient, event: StartedEv):
+@bot.event(StartedEv)
+async def on_started(client: AutomationClient, event: StartedEv):
     print(
         {
             "status": "started",
             "bot_name": event.bot_name,
             "device_id": event.device_id,
-            "stream_name": event.stream_name,
+            "channel": event.channel_name,
         }
     )
 
 
-@client.event(MessageEv)
+@bot.event(MessageEv)
 async def on_message(client: AutomationClient, event: MessageEv):
     message = event.message
+    text = message.text.lower().strip()
 
+    print(
+        {
+            "event": event.event_name,
+            "device_id": event.device_id,
+            "message_id": message.id,
+            "chat_id": message.chat_id,
+            "sender": message.sender,
+            "direction": message.direction,
+            "text": message.text,
+            "has_media": message.has_media,
+        }
+    )
+
+    # Handling Group
     if message.is_group:
         return
 
-    if message.is_from_me:
-        return
+    # Handling outgoing message
+    if message.direction == "outgoing":
+        if text == "done":
+            await client.reply_message("yes", message)
 
-    text = message.text.lower().strip()
-
-    if not text:
-        return
-
-    if text == "hi":
-        print("sudah berhasil")
-        await client.reply_message(
-            "Halo, ini Sales Bot. Ada yang bisa dibantu?",
-            message,
-        )
-        return
-
-    if "harga" in text or "price" in text or "pricelist" in text:
-        await client.reply_message(
-            "Berikut daftar harga produk kami. Silakan sebutkan produk yang ingin dicek.",
-            message,
-        )
-        return
-
-    if "katalog" in text:
-        await client.reply_message(
-            "Berikut katalog produk kami: https://example.com/katalog",
-            message,
-        )
-        return
-
-    if "komplain" in text:
-        await client.reply_message(
-            "Baik, laporan Anda kami teruskan ke admin sales.",
-            message,
-        )
-
-        await client.send_message(
-            to="628xxxxxxxxxx",
-            text=f"Komplain baru dari {message.sender}: {message.text}",
-        )
-        return
-
-    await client.reply_message(
-        "Halo, pesan Anda sudah kami terima. Tim sales akan membantu.",
-        message,
-    )
+    # Handling incoming
+    if message.direction == "incoming":
+        if text == "ping":
+            await client.reply_message("pong", message)
 
 
-client.run()
+if __name__ == "__main__":
+    bot.run()

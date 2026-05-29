@@ -6,7 +6,7 @@ from typing import Any, Callable, DefaultDict, Type
 from automation_core.events import MessageEv, StartedEv
 from automation_core.gowa_client import GowaClient
 from automation_core.message import IncomingMessage
-from automation_core.redis_stream import RedisStreamConsumer
+from automation_core.redis_pubsub import RedisPubSubSubscriber
 from automation_core.settings import get_settings
 
 
@@ -16,7 +16,7 @@ Handler = Callable[..., Any]
 class AutomationClient:
     def __init__(self):
         self.settings = get_settings()
-        self.consumer = RedisStreamConsumer(self.settings)
+        self.subscriber = RedisPubSubSubscriber(self.settings)
         self.gowa = GowaClient(self.settings)
         self.handlers: DefaultDict[Type[Any], list[Handler]] = defaultdict(list)
         self.running = False
@@ -39,11 +39,8 @@ class AutomationClient:
 
     def build_message_event(
         self,
-        redis_stream_id: str,
-        event: dict[str, Any],
+        payload: dict[str, Any],
     ) -> MessageEv:
-        payload = event.get("payload") or {}
-    
         message = IncomingMessage(
             id=payload.get("message_id") or payload.get("id"),
             text=payload.get("text") or payload.get("body") or "",
@@ -54,15 +51,19 @@ class AutomationClient:
                 payload.get("is_group")
                 or str(payload.get("chat_id") or "").endswith("@g.us")
             ),
-            raw=payload.get("raw") or payload,
+            # Simpan payload normalized sebagai raw agar property seperti
+            # is_from_me, direction, media_type, dan media_path tetap benar.
+            raw=payload,
         )
-    
+
         return MessageEv(
-            event_id=event.get("event_id") or "",
-            redis_stream_id=redis_stream_id,
+            event_id=payload.get("event_id") or payload.get("message_id") or payload.get("id"),
+            redis_stream_id=None,
             device_id=message.device_id,
             message=message,
             raw=payload,
+            event_name=str(payload.get("event") or "message"),
+            channel_name=self.settings.resolved_pubsub_channel,
         )
 
     async def reply_message(
@@ -94,12 +95,12 @@ class AutomationClient:
         )
 
     async def start(self) -> None:
-        await self.consumer.ensure_group()
+        await self.subscriber.subscribe()
 
         started_event = StartedEv(
             bot_name=self.settings.bot_name,
             device_id=self.settings.device_id,
-            stream_name=self.settings.resolved_stream_name,
+            channel_name=self.settings.resolved_pubsub_channel,
         )
 
         await self.emit(started_event)
@@ -107,35 +108,28 @@ class AutomationClient:
         self.running = True
 
         while self.running:
-            events = await self.consumer.read()
+            events = await self.subscriber.read()
 
             if not events:
                 continue
 
-            for redis_stream_id, event in events:
+            for payload in events:
                 try:
-                    message_event = self.build_message_event(
-                        redis_stream_id=redis_stream_id,
-                        event=event,
-                    )
-
+                    message_event = self.build_message_event(payload)
                     await self.emit(message_event)
-
-                    if self.settings.ack_on_handler_success:
-                        await self.consumer.ack(redis_stream_id)
 
                 except Exception as exc:
                     print(
                         {
                             "error": str(exc),
-                            "redis_stream_id": redis_stream_id,
-                            "event": event,
+                            "channel": self.settings.resolved_pubsub_channel,
+                            "payload": payload,
                         }
                     )
 
     async def stop(self) -> None:
         self.running = False
-        await self.consumer.close()
+        await self.subscriber.close()
         await self.gowa.close()
 
     def run(self) -> None:
