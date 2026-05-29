@@ -1,17 +1,15 @@
-from automation_core.client import AutomationClient
-from automation_core.events import MessageEv, StartedEv
+from automation_core import AutomationClient, MessageEv, StartedEv
 
 client = AutomationClient()
 
-
 @client.event(StartedEv)
-def on_started(client: AutomationClient, event: StartedEv):
+async def on_started(client: AutomationClient, event: StartedEv):
     print(
         {
             "status": "started",
             "bot_name": event.bot_name,
             "device_id": event.device_id,
-            "stream_name": event.stream_name,
+            "channel": event.channel_name,
         }
     )
 
@@ -34,7 +32,7 @@ async def on_message(client: AutomationClient, event: MessageEv):
 
     if not text:
         return
-
+    
     if text == "hi":
         print("sudah berhasil")
         await client.reply_message(
