@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -e ./automation-core \
     && if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
 
-CMD ["python", "example_bot.py"]
+CMD ["python", "main.py"]
