@@ -25,12 +25,6 @@ class Settings(BaseSettings):
     pubsub_channel_name: str | None = None
     pubsub_channel_prefix: str = "wa:incoming"
 
-    # Backward-compatible migration fields.
-    # Kalau .env lama masih memakai STREAM_NAME/STREAM_PREFIX,
-    # worker tetap bisa jalan, tetapi sebaiknya pindah ke PUBSUB_*.
-    stream_name: str | None = None
-    stream_prefix: str | None = None
-
     pubsub_poll_timeout_seconds: float = 1.0
     redis_reconnect_sleep_seconds: float = 2.0
 
@@ -45,15 +39,8 @@ class Settings(BaseSettings):
     def resolved_pubsub_channel(self) -> str:
         if self.pubsub_channel_name:
             return self.pubsub_channel_name
-
-        if self.stream_name:
-            return self.stream_name
-
+        
         prefix = self.pubsub_channel_prefix
-
-        if self.stream_prefix:
-            prefix = self.stream_prefix
-
         return f"{prefix}:{self.device_id}"
 
     @property
