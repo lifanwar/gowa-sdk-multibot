@@ -18,6 +18,7 @@ async def on_started(client: AutomationClient, event: StartedEv):
 @bot.event(MessageEv)
 async def on_message(client: AutomationClient, event: MessageEv):
     message = event.message
+    text = message.text.lower().strip()
 
     print(
         {
@@ -32,9 +33,19 @@ async def on_message(client: AutomationClient, event: MessageEv):
         }
     )
 
-    # Contoh: hanya balas pesan masuk, bukan pesan keluar dari device sendiri.
-    if message.direction == "incoming" and message.text.lower().strip() == "ping":
-        await client.reply_message("pong", message)
+    # Handling Group
+    if message.is_group:
+        return
+
+    # Handling outgoing message
+    if message.direction == "outgoing":
+        if text == "done":
+            await client.reply_message("yes", message)
+
+    # Handling incoming
+    if message.direction == "incoming":
+        if text == "ping":
+            await client.reply_message("pong", message)
 
 
 if __name__ == "__main__":
