@@ -58,7 +58,6 @@ class AutomationClient:
 
         return MessageEv(
             event_id=payload.get("event_id") or payload.get("message_id") or payload.get("id"),
-            redis_stream_id=None,
             device_id=message.device_id,
             message=message,
             raw=payload,

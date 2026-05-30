@@ -18,4 +18,3 @@ class MessageEv:
     event_name: str
     channel_name: str
     event_id: str | None = None
-    redis_stream_id: str | None = None
