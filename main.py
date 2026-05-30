@@ -52,7 +52,7 @@ async def on_message(client: AutomationClient, event: MessageEv):
             sent = await client.reply_message("processing...", message)
 
             await client.update_message(
-                message_id=sent.get("message_id"),
+                message_id=sent["message_id"],
                 to=message.contact_id,
                 text="pong",
             )
