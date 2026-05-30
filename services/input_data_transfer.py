@@ -8,22 +8,33 @@ from utils.spreadsheet_connect import get_google_sheet
 
 async def handle_confirmed_transfer_reply(client, message, text) -> None:
     try:
+        sent = await client.reply_message("processing...", message)
         transfer_data = parse_confirmed_transfer_data(text, message)
         hasil_rate = rate_calculation(transfer_data["idr"], transfer_data["rate"])
         
         # Save data        
         save_all_confirmed_transfer_data(transfer_data, hasil_rate, message)
 
-        await client.reply_message(
-            f"✅ Done\n"
-            f"Total EGP: {hasil_rate:,.0f}".replace(",", "."),
-            message
+        await client.update_message(
+            message_id=sent["message_id"],
+            to=message.contact_id,
+            text=(
+                f"✅ Done\n"
+                f"Total EGP: {hasil_rate:,.0f}"
+            ).replace(",", "."),
         )
 
     except Exception as e:
         print(f"Failed to save confirmed transfer: {e}")
 
-        await client.reply_message("❌ Gagal Input Data", message)
+        if sent:
+            await client.update_message(
+                message_id=sent["message_id"],
+                to=message.contact_id,
+                text="❌ Gagal Input Data",
+            )
+        else:
+            await client.reply_message("❌ Gagal Input Data", message)
 
 # ======================#
 #         UTILS         #
