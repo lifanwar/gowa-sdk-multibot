@@ -52,7 +52,6 @@ async def on_message(client: AutomationClient, event: MessageEv):
             msg = await client.reply_message("processing...", message)
 
             await client.update_message("pong", msg, message)
-
             return
 
 
