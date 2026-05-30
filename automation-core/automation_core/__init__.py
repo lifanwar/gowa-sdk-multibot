@@ -4,7 +4,7 @@ from automation_core.message import IncomingMessage
 
 __all__ = [
     "AutomationClient",
-    "IncomingMessage",
     "MessageEv",
     "StartedEv",
+    "IncomingMessage",
 ]

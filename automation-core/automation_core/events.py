@@ -10,6 +10,7 @@ class StartedEv:
     device_id: str
     channel_name: str
 
+
 @dataclass
 class MessageEv:
     device_id: str

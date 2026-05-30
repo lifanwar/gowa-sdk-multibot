@@ -1,11 +1,12 @@
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
 from automation_core.settings import Settings
 
 
-class GowaClient:
+class WhatsAppApi:
     def __init__(self, settings: Settings):
         self.settings = settings
 
@@ -28,6 +29,22 @@ class GowaClient:
     async def close(self) -> None:
         await self.client.aclose()
 
+    async def _post(
+        self,
+        path: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        response = await self.client.post(
+            path,
+            json=payload,
+        )
+        response.raise_for_status()
+
+        if response.content:
+            return response.json()
+
+        return {"ok": True}
+
     async def send_message(
         self,
         to: str,
@@ -38,6 +55,12 @@ class GowaClient:
         mentions: list[str] | None = None,
         extra_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        if not to:
+            raise ValueError("to is required")
+
+        if not text:
+            raise ValueError("text is required")
+
         payload: dict[str, Any] = {
             "phone": to,
             "message": text,
@@ -58,15 +81,32 @@ class GowaClient:
         if extra_payload:
             payload.update(extra_payload)
 
-        response = await self.client.post(
+        return await self._post(
             self.settings.gowa_send_message_path,
-            json=payload,
+            payload,
         )
-        response.raise_for_status()
 
-        if response.content:
-            return response.json()
+    async def update_message(
+        self,
+        message_id: str,
+        to: str,
+        text: str,
+    ) -> dict[str, Any]:
+        if not message_id:
+            raise ValueError("message_id is required")
 
-        return {
-            "ok": True,
+        if not to:
+            raise ValueError("to is required")
+
+        if not text:
+            raise ValueError("text is required")
+
+        safe_message_id = quote(message_id, safe="")
+        path = f"/message/{safe_message_id}/update"
+
+        payload = {
+            "phone": to,
+            "message": text,
         }
+
+        return await self._post(path, payload)
