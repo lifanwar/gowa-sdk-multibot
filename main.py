@@ -49,13 +49,9 @@ async def on_message(client: AutomationClient, event: MessageEv):
             return
 
         if text == "test":
-            sent = await client.reply_message("processing...", message)
+            msg = await client.reply_message("processing...", message)
 
-            await client.update_message(
-                message_id=sent["message_id"],
-                to=message.contact_id,
-                text="pong",
-            )
+            await client.update_message("pong", msg, message)
 
             return
 
