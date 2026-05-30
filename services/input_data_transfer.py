@@ -15,26 +15,35 @@ async def handle_confirmed_transfer_reply(client, message, text) -> None:
         # Save data        
         save_all_confirmed_transfer_data(transfer_data, hasil_rate, message)
 
-        await client.update_message(
-            message_id=sent["message_id"],
-            to=message.contact_id,
-            text=(
+        if sent:
+            await client.update_message(
+                message_id=sent["message_id"],
+                to=message.contact_id,
+                text=(
+                    f"✅ Done\n"
+                    f"Total EGP: {hasil_rate:,.0f}"
+                ).replace(",", "."),
+            )
+        else:
+            await client.reply_message(
                 f"✅ Done\n"
-                f"Total EGP: {hasil_rate:,.0f}"
-            ).replace(",", "."),
-        )
+                f"Total EGP: {hasil_rate:,.0f}".replace(",", "."), 
+                message
+            )
 
     except Exception as e:
         print(f"Failed to save confirmed transfer: {e}")
+
+        error_message = f"❌ Gagal Input Data\n{str(e)}"
 
         if sent:
             await client.update_message(
                 message_id=sent["message_id"],
                 to=message.contact_id,
-                text="❌ Gagal Input Data",
+                text=error_message,
             )
         else:
-            await client.reply_message("❌ Gagal Input Data", message)
+            await client.reply_message(error_message, message)
 
 # ======================#
 #         UTILS         #
@@ -81,12 +90,14 @@ def save_all_confirmed_transfer_data(data: dict, hasil_rate: int, message) -> No
     try:
         save_confirmed_transfer_to_sheet(data)
     except Exception as e:
-        raise Exception(f"Gagal input sheet Transaksi: {e}")
+        print(f"Detail error sheet Transaksi: {e}")
+        raise Exception("Gagal input sheet Transaksi")
 
     try:
         save_customer_to_sheet(data, hasil_rate, message)
     except Exception as e:
-        raise Exception(f"Gagal input sheet Customers: {e}")
+        print(f"Detail error sheet Customers: {e}")
+        raise Exception("Gagal input sheet Customers")
     
 def save_confirmed_transfer_to_sheet(data: dict) -> int:
     worksheet = get_google_sheet("Transaksi")
