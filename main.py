@@ -46,10 +46,8 @@ async def on_message(client: AutomationClient, event: MessageEv):
     # Handling outgoing message
     if message.direction == "outgoing":
 
-        if text == "ping":
-            timestamp = message.raw.get("timestamp")
-
-            print(f'TIMESTAMP ANDA: {timestamp}')
+        if text == "done":
+            await client.send_message("yes", message)
 
         # Services input data transfer 
         if text.strip().splitlines()[0].strip().upper() == "CONFIRMED_TRANSFER":
