@@ -48,50 +48,6 @@ class AutomationClient:
             if inspect.isawaitable(result):
                 await result
 
-    def build_message_event(
-        self,
-        payload: dict[str, Any],
-    ) -> MessageEv:
-        message = IncomingMessage(
-            id=payload.get("message_id") or payload.get("id"),
-            text=payload.get("text") or payload.get("body") or "",
-            sender=payload.get("sender") or payload.get("from"),
-            chat_id=payload.get("chat_id"),
-            device_id=payload.get("device_id") or self.settings.device_id,
-            is_group=bool(
-                payload.get("is_group")
-                or str(payload.get("chat_id") or "").endswith("@g.us")
-            ),
-            # Simpan payload normalized sebagai raw agar property seperti
-            # is_from_me, direction, media_type, dan media_path tetap benar.
-            raw=payload,
-        )
-
-        return MessageEv(
-            event_id=payload.get("event_id") or payload.get("message_id") or payload.get("id"),
-            device_id=message.device_id,
-            message=message,
-            raw=payload,
-            event_name=str(payload.get("event") or "message"),
-            channel_name=self.settings.resolved_pubsub_channel,
-        )
-
-    async def reply_message(
-        self,
-        text: str,
-        message: IncomingMessage,
-    ) -> dict[str, Any]:
-        target = message.contact_id
-
-        if not target:
-            raise ValueError("Cannot reply because message contact_id is empty")
-
-        return await self._whatsapp.send_message(
-            to=target,
-            text=text,
-            reply_message_id=message.id,
-        )
-
     async def start(self) -> None:
         await self.subscriber.subscribe()
 
@@ -148,3 +104,52 @@ class AutomationClient:
             asyncio.run(self._main())
         except KeyboardInterrupt:
             print("Worker stopped by user")
+
+    # ===========================#
+    # Build Message from GoWaApi #
+    # ===========================#
+    def build_message_event(
+        self,
+        payload: dict[str, Any],
+    ) -> MessageEv:
+        message = IncomingMessage(
+            id=payload.get("message_id") or payload.get("id"),
+            text=payload.get("text") or payload.get("body") or "",
+            sender=payload.get("sender") or payload.get("from"),
+            chat_id=payload.get("chat_id"),
+            device_id=payload.get("device_id") or self.settings.device_id,
+            is_group=bool(
+                payload.get("is_group")
+                or str(payload.get("chat_id") or "").endswith("@g.us")
+            ),
+            # Simpan payload normalized sebagai raw agar property seperti
+            # is_from_me, direction, media_type, dan media_path tetap benar.
+            raw=payload,
+        )
+
+        return MessageEv(
+            event_id=payload.get("event_id") or payload.get("message_id") or payload.get("id"),
+            device_id=message.device_id,
+            message=message,
+            raw=payload,
+            event_name=str(payload.get("event") or "message"),
+            channel_name=self.settings.resolved_pubsub_channel,
+        )
+
+    async def reply_message(
+        self,
+        text: str,
+        message: IncomingMessage,
+    ) -> dict[str, Any]:
+        target = message.contact_id
+
+        if not target:
+            raise ValueError("Cannot reply because message contact_id is empty")
+
+        return await self._whatsapp.send_message(
+            to=target,
+            text=text,
+            reply_message_id=message.id,
+        )
+
+ 
