@@ -20,6 +20,7 @@ class AutomationClient:
         self._whatsapp = WhatsAppApi(self.settings)
         self.handlers: DefaultDict[Type[Any], list[Handler]] = defaultdict(list)
         self.running = False
+        self._stopping = False
 
     def __getattr__(self, name: str):
         whatsapp = self.__dict__.get("_whatsapp")
@@ -125,12 +126,25 @@ class AutomationClient:
                     )
 
     async def stop(self) -> None:
+        if self._stopping:
+            return
+
+        self._stopping = True
         self.running = False
-        await self.subscriber.close()
-        await self._whatsapp.close()
+
+        try:
+            await self.subscriber.close()
+        finally:
+            await self._whatsapp.close()
+
+    async def _main(self) -> None:
+        try:
+            await self.start()
+        finally:
+            await self.stop()
 
     def run(self) -> None:
         try:
-            asyncio.run(self.start())
+            asyncio.run(self._main())
         except KeyboardInterrupt:
             print("Worker stopped by user")
