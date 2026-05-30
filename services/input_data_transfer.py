@@ -17,13 +17,13 @@ async def handle_confirmed_transfer_reply(client, message, text) -> None:
 
         if sent:
             await client.update_message(
-                message_id=sent["message_id"],
-                to=message.contact_id,
-                text=(
-                    f"✅ Done\n"
-                    f"Total EGP: {hasil_rate:,.0f}"
-                ).replace(",", "."),
-            )
+            (
+                f"✅ Done\n"
+                f"Total EGP: {hasil_rate:,.0f}"
+            ).replace(",", "."),
+            sent,
+            message,
+        )
         else:
             await client.reply_message(
                 f"✅ Done\n"
@@ -37,11 +37,7 @@ async def handle_confirmed_transfer_reply(client, message, text) -> None:
         error_message = f"❌ Gagal Input Data\n{str(e)}"
 
         if sent:
-            await client.update_message(
-                message_id=sent["message_id"],
-                to=message.contact_id,
-                text=error_message,
-            )
+            await client.update_message(error_message, sent, message)
         else:
             await client.reply_message(error_message, message)
 
