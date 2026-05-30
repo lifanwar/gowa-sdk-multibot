@@ -29,33 +29,6 @@ class WhatsAppApi:
     async def close(self) -> None:
         await self.client.aclose()
 
-    def _extract_message_id(self, data: dict[str, Any]) -> str | None:
-        results = data.get("results")
-        if isinstance(results, dict):
-            message_id = (
-                results.get("message_id")
-                or results.get("messageId")
-                or results.get("id")
-            )
-            if message_id:
-                return str(message_id)
-
-        message_id = (
-            data.get("message_id")
-            or data.get("messageId")
-            or data.get("id")
-        )
-
-        return str(message_id) if message_id else None
-
-    def _normalize_response(self, data: dict[str, Any]) -> dict[str, Any]:
-        message_id = self._extract_message_id(data)
-
-        if message_id and "message_id" not in data:
-            data["message_id"] = message_id
-
-        return data
-
     async def _post(
         self,
         path: str,
@@ -66,19 +39,20 @@ class WhatsAppApi:
             json=payload,
         )
         response.raise_for_status()
-
-        if response.content:
-            data = response.json()
-
-            if isinstance(data, dict):
-                return self._normalize_response(data)
-
-            return {
-                "ok": True,
-                "data": data,
-            }
-
-        return {"ok": True}
+    
+        if not response.content:
+            return {"ok": True}
+    
+        data = response.json()
+    
+        if not isinstance(data, dict):
+            return {"ok": True, "data": data}
+    
+        results = data.get("results")
+        if isinstance(results, dict):
+            data.setdefault("message_id", results.get("message_id"))
+    
+        return data
 
     async def send_message(
         self,
