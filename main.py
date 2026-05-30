@@ -46,6 +46,19 @@ async def on_message(client: AutomationClient, event: MessageEv):
     if message.direction == "incoming":
         if text == "ping":
             await client.reply_message("pong", message)
+            return
+
+        if text == "test":
+            sent = await client.reply_message("processing...", message)
+
+            updated = await client.update_message(
+                message_id=sent.get("message_id"),
+                to=message.contact_id,
+                text="pong",
+            )
+
+            print("UPDATE RESPONSE:", updated)
+            return
 
 
 if __name__ == "__main__":
