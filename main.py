@@ -45,7 +45,7 @@ async def on_message(client: AutomationClient, event: MessageEv):
     # Handling incoming
     if message.direction == "incoming":
         if text == "ping":
-            await client.reply_message("pong", message)
+            await client.send_message("pong", message)
             return
 
         if text == "test":
