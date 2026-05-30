@@ -105,9 +105,9 @@ class AutomationClient:
         except KeyboardInterrupt:
             print("Worker stopped by user")
 
-    # ===========================#
-    # Build Message from GoWaApi #
-    # ===========================#
+# ======================================================#
+#               Build Message from GoWaApi              #
+# ======================================================#
     def build_message_event(
         self,
         payload: dict[str, Any],
@@ -158,10 +158,35 @@ class AutomationClient:
         text: str,
         message: IncomingMessage,
     ) -> dict[str, Any]:
-        return await self._whatsapp.send_message(
+        return await self.send_message(
             text=text,
             message=message,
             reply_message_id=message.id,
+        )
+    
+    async def update_message(
+        self,
+        text: str,
+        target_message: dict[str, Any] | str,
+        message: IncomingMessage,
+    ) -> dict[str, Any]:
+        if isinstance(target_message, dict):
+            message_id = target_message.get("message_id")
+        else:
+            message_id = target_message
+
+        if not message_id:
+            raise ValueError("Cannot update message because message_id is empty")
+
+        target = message.contact_id
+
+        if not target:
+            raise ValueError("Cannot update message because message contact_id is empty")
+
+        return await self._whatsapp.update_message(
+            message_id=message_id,
+            to=target,
+            text=text,
         )
 
  
