@@ -1,13 +1,6 @@
 from automation_core import AutomationClient, MessageEv, StartedEv
 
-# Services
-from services.input_data_transfer import handle_confirmed_transfer_reply
-
-# Utils
-from utils.redis_connect import save_media_path_to_redis
-
 bot = AutomationClient()
-
 
 @bot.event(StartedEv)
 async def on_started(client: AutomationClient, event: StartedEv):
@@ -45,18 +38,8 @@ async def on_message(client: AutomationClient, event: MessageEv):
 
     # Handling outgoing message
     if message.direction == "outgoing":
-
-        if text == "ping":
-            timestamp = message.raw.get("timestamp")
-
-            print(f'TIMESTAMP ANDA: {timestamp}')
-
-        # Services input data transfer 
-        if text.strip().splitlines()[0].strip().upper() == "CONFIRMED_TRANSFER":
-            await handle_confirmed_transfer_reply(client, message, text)
-            return
-
-        
+        if text == "done":
+            await client.reply_message("yes", message)
 
     # Handling incoming
     if message.direction == "incoming":
@@ -64,12 +47,16 @@ async def on_message(client: AutomationClient, event: MessageEv):
             await client.reply_message("pong", message)
             return
 
-        if message.has_media:
-            save_media_path_to_redis(message.id, message.media_path)
-            print("Berhasil save")
-            return
-        
+        if text == "test":
+            sent = await client.reply_message("processing...", message)
 
+            await client.update_message(
+                message_id=sent["message_id"],
+                to=message.contact_id,
+                text="pong",
+            )
+
+            return
 
 
 if __name__ == "__main__":
