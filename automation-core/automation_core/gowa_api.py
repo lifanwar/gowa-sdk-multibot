@@ -6,7 +6,7 @@ import httpx
 from automation_core.settings import Settings
 
 
-class WhatsAppApi:
+class GoWaApi:
     def __init__(self, settings: Settings):
         self.settings = settings
 

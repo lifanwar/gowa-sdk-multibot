@@ -7,7 +7,7 @@ from automation_core.events import MessageEv, StartedEv
 from automation_core.message import IncomingMessage
 from automation_core.redis_pubsub import RedisPubSubSubscriber
 from automation_core.settings import get_settings
-from automation_core.whatsapp_api import WhatsAppApi
+from automation_core.gowa_api import GoWaApi
 
 
 Handler = Callable[..., Any]
@@ -17,7 +17,7 @@ class AutomationClient:
     def __init__(self):
         self.settings = get_settings()
         self.subscriber = RedisPubSubSubscriber(self.settings)
-        self._whatsapp = WhatsAppApi(self.settings)
+        self._whatsapp = GoWaApi(self.settings)
         self.handlers: DefaultDict[Type[Any], list[Handler]] = defaultdict(list)
         self.running = False
         self._stopping = False
