@@ -135,20 +135,32 @@ class AutomationClient:
             event_name=str(payload.get("event") or "message"),
             channel_name=self.settings.resolved_pubsub_channel,
         )
+    
+    async def send_message(
+        self,
+        text: str,
+        message: IncomingMessage,
+        reply_message_id: str | None = None,
+    ) -> dict[str, Any]:
+        target = message.contact_id
+
+        if not target:
+            raise ValueError("Cannot send message because message contact_id is empty")
+
+        return await self._whatsapp.send_message(
+            to=target,
+            text=text,
+            reply_message_id=reply_message_id,
+        )
 
     async def reply_message(
         self,
         text: str,
         message: IncomingMessage,
     ) -> dict[str, Any]:
-        target = message.contact_id
-
-        if not target:
-            raise ValueError("Cannot reply because message contact_id is empty")
-
         return await self._whatsapp.send_message(
-            to=target,
             text=text,
+            message=message,
             reply_message_id=message.id,
         )
 
