@@ -28,10 +28,12 @@ class Settings(BaseSettings):
     pubsub_poll_timeout_seconds: float = 1.0
     redis_reconnect_sleep_seconds: float = 2.0
 
+    # WhatsApp/GOWA API
     gowa_base_url: str = "http://localhost:3000"
     gowa_device_id: str | None = None
 
     gowa_send_message_path: str = "/send/message"
+
     gowa_basic_auth_username: str | None = None
     gowa_basic_auth_password: str | None = None
 
@@ -39,9 +41,8 @@ class Settings(BaseSettings):
     def resolved_pubsub_channel(self) -> str:
         if self.pubsub_channel_name:
             return self.pubsub_channel_name
-        
-        prefix = self.pubsub_channel_prefix
-        return f"{prefix}:{self.device_id}"
+
+        return f"{self.pubsub_channel_prefix}:{self.device_id}"
 
     @property
     def resolved_consumer_name(self) -> str:
@@ -51,7 +52,8 @@ class Settings(BaseSettings):
 
     @property
     def resolved_gowa_device_id(self) -> str:
-        return self.gowa_device_id
+        # Jika GOWA_DEVICE_ID tidak diisi, fallback ke DEVICE_ID.
+        return self.gowa_device_id or self.device_id
 
 
 @lru_cache
