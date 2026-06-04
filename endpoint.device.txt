@@ -1,0 +1,64 @@
+curl -X GET "$BASE_URL/devices/$DEVICE_ID" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+
+ALL DEVICE:
+curl -X GET "$BASE_URL/devices" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Create device dengan custom device_id:
+curl -X POST "$BASE_URL/devices" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "device_id": "device-1"
+  }'
+
+Create device otomatis:
+curl -X POST "$BASE_URL/devices" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{}'
+
+Get detail device:
+curl -X GET "$BASE_URL/devices/$DEVICE_ID" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Login/connect pakai QR:
+curl -X GET "$BASE_URL/devices/login" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+  -d '{
+    "device_id": "device-1"
+  }'
+
+Login/connect pakai pairing code:
+curl -X POST "$BASE_URL/devices/$DEVICE_ID/login/code?phone=$PHONE" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Check status device:
+curl -X GET "$BASE_URL/devices/$DEVICE_ID/status" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Reconnect device:
+curl -X POST "$BASE_URL/devices/$DEVICE_ID/reconnect" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Logout device:
+curl -X POST "$BASE_URL/devices/$DEVICE_ID/logout" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
+Delete device:
+curl -X DELETE "$BASE_URL/devices/$DEVICE_ID" \
+  -u "$BASIC_USER:$BASIC_PASS" \
+  -H "Accept: application/json"
+
